@@ -21367,7 +21367,7 @@
   var chart = null;
   var chartCanvas = null;
   var chartReport = null;
-  var graphicResults = null;
+  var graphicDataset = null;
   harlan.addPlugin(function (controller) {
     function modalFilter() {
       controller.call('form', function (data) {
@@ -21480,6 +21480,7 @@
       }), function (doc) {
         var qtde = doc.state[state];
         var stateReference = reference.state[state];
+        if (typeof qtde !== 'number') return 'Aguardando processamento';
         if (qtde <= 0) return "Sem ".concat(stateReference);
         if (qtde <= 2) return "At\xE9 2 ".concat(stateReference);
         if (qtde <= 5) return "At\xE9 5 ".concat(stateReference);
@@ -21499,6 +21500,7 @@
       var backgroundColor = map_1(database, function (v) {
         return meanBy_1(v, "state.".concat(state));
       }).map(function (qtde) {
+        if (typeof qtde !== 'number' || Number.isNaN(qtde)) return colors.warning.shift();
         if (qtde === 0) return colors.success.shift();
         if (qtde <= 2) return colors.warning.shift();
         if (qtde <= 5) return colors.warning.shift();
@@ -21517,7 +21519,7 @@
           })
         }]
       };
-      graphicResults = map_1(database, function (value) {
+      graphicDataset = map_1(database, function (value) {
         return value;
       });
       return data;
@@ -21525,7 +21527,16 @@
 
     function updateChart() {
       var data = generateData();
-      if (!data) return;
+
+      if (!data) {
+        chart = null;
+        chartCanvas = null;
+        graphicDataset = null;
+        chartReport.element().remove();
+        chartReport = null;
+        return;
+      }
+
       createChartReport();
 
       if (!chart) {
@@ -21541,9 +21552,9 @@
                 return;
               }
 
-              var idx = chartItem._datasetIndex;
+              var idx = chartItem._index;
               var maxResults = 5;
-              var results = graphicResults[idx].slice();
+              var results = graphicDataset[idx].slice();
               controller.call('moreResults', maxResults).callback(function (cb) {
                 return Promise.all(results.splice(0, maxResults).map(function (_ref5) {
                   var document = _ref5.document;
@@ -21551,9 +21562,17 @@
                     return controller.call('ccbusca', document, function (element) {
                       return resolve(element);
                     });
-                  });
+                  }, false, true);
                 })).then(function (elements) {
-                  return cb(elements);
+                  cb(elements.slice());
+                  if (!elements.length) return;
+                  elements.map(function (element) {
+                    return $('.fa.fa-minus-square-o', element).click();
+                  });
+                  debugger;
+                  $('html, body').animate({
+                    scrollTop: elements[0].offset().top
+                  }, 2000);
                 });
               }).appendTo(chartReport.element()).show();
             },
@@ -21647,9 +21666,6 @@
     function drawReport() {
       if (renderedReport) renderedReport.remove();
       var report = controller.call('report', 'Que tal monitorar um CPF ou CNPJ?', 'No dia em que seus cedentes e sacados apresentarem ocorrência você será notificado.', 'O monitoramento auxilia na manutenção regular de seus clientes e fornecedores. Diariamente, nosso sistema verifica por alterações relevantes nas informações de cheques sem fundo, protestos e Receita Federal. Caso haja uma alteração, nós lhe enviaremos um e-mail para que fique por dentro de tudo.', false);
-      report.button('Abrir Filtro', function () {
-        return updateChart();
-      });
       report.button('Monitorar Documento', function () {
         return modalFollow();
       });
@@ -21696,7 +21712,7 @@
     });
     controller.registerTrigger('serverCommunication::websocket::followDocument::insert', 'icheques::ban::register', changeDocument);
     controller.registerTrigger('serverCommunication::websocket::followDocument::update', 'icheques::ban::register', changeDocument);
-    controller.registerTrigger('serverCommunication::websocket::followDocument::insert', 'icheques::ban::register', deleteDocument);
+    controller.registerTrigger('serverCommunication::websocket::followDocument::delete', 'icheques::ban::register', deleteDocument);
     controller.registerTrigger('ccbusca::parser', 'followDocument', function (_ref8, callback) {
       var result = _ref8.result,
           doc = _ref8.doc;

@@ -41,7 +41,7 @@ let filterConfiguration = {
 let chart = null;
 let chartCanvas = null;
 let chartReport = null;
-let graphicResults = null;
+let graphicDataset = null;
 
 harlan.addPlugin((controller) => {
   function modalFilter() {
@@ -153,6 +153,7 @@ harlan.addPlugin((controller) => {
       }), (doc) => {
       const qtde = doc.state[state];
       const stateReference = reference.state[state];
+      if (typeof qtde !== 'number') return 'Aguardando processamento';
       if (qtde <= 0) return `Sem ${stateReference}`;
       if (qtde <= 2) return `Até 2 ${stateReference}`;
       if (qtde <= 5) return `Até 5 ${stateReference}`;
@@ -171,6 +172,7 @@ harlan.addPlugin((controller) => {
     };
 
     const backgroundColor = map(database, v => meanBy(v, `state.${state}`)).map((qtde) => {
+      if (typeof qtde !== 'number' || Number.isNaN(qtde)) return colors.warning.shift();
       if (qtde === 0) return colors.success.shift();
       if (qtde <= 2) return colors.warning.shift();
       if (qtde <= 5) return colors.warning.shift();
@@ -187,13 +189,20 @@ harlan.addPlugin((controller) => {
           .map(color => new Color(color).lighten(0.1).toString()),
       }],
     };
-    graphicResults = map(database, value => value);
+    graphicDataset = map(database, value => value);
     return data;
   }
 
   function updateChart() {
     const data = generateData();
-    if (!data) return;
+    if (!data) {
+      chart = null;
+      chartCanvas = null;
+      graphicDataset = null;
+      chartReport.element().remove();
+      chartReport = null;
+      return;
+    }
     createChartReport();
 
     if (!chart) {
@@ -203,14 +212,22 @@ harlan.addPlugin((controller) => {
         options: {
           onClick(event, [chartItem]) {
             if (!chartItem) { return; }
-            const { _datasetIndex: idx } = chartItem;
+            const { _index: idx } = chartItem;
             const maxResults = 5;
-            const results = graphicResults[idx].slice();
+            const results = graphicDataset[idx].slice();
 
             controller.call('moreResults', maxResults)
               .callback(cb => Promise.all(results.splice(0, maxResults)
-                .map(({ document }) => new Promise(resolve => controller.call('ccbusca', document, element => resolve(element)))))
-                .then(elements => cb(elements))).appendTo(chartReport.element()).show();
+                .map(({ document }) => new Promise(resolve => controller.call('ccbusca', document, element => resolve(element)), false, true)))
+                .then((elements) => {
+                  cb(elements.slice());
+                  if (!elements.length) return;
+                  elements.map(element => $('.fa.fa-minus-square-o', element).click());
+                  debugger;
+                  $('html, body').animate({
+                    scrollTop: elements[0].offset().top,
+                  }, 2000);
+                })).appendTo(chartReport.element()).show();
           },
           legend: {
             display: true,
@@ -299,7 +316,6 @@ harlan.addPlugin((controller) => {
       'O monitoramento auxilia na manutenção regular de seus clientes e fornecedores. Diariamente, nosso sistema verifica por alterações relevantes nas informações de cheques sem fundo, protestos e Receita Federal. Caso haja uma alteração, nós lhe enviaremos um e-mail para que fique por dentro de tudo.',
       false);
 
-    // report.button('Abrir Filtro', () => updateChart());
     report.button('Monitorar Documento', () => modalFollow());
     report.gamification('brilliantIdea');
 
@@ -344,7 +360,7 @@ harlan.addPlugin((controller) => {
 
   controller.registerTrigger('serverCommunication::websocket::followDocument::insert', 'icheques::ban::register', changeDocument);
   controller.registerTrigger('serverCommunication::websocket::followDocument::update', 'icheques::ban::register', changeDocument);
-  controller.registerTrigger('serverCommunication::websocket::followDocument::insert', 'icheques::ban::register', deleteDocument);
+  controller.registerTrigger('serverCommunication::websocket::followDocument::delete', 'icheques::ban::register', deleteDocument);
 
   controller.registerTrigger('ccbusca::parser', 'followDocument', ({ result, doc }, callback) => {
     callback();
