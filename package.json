@@ -1,6 +1,6 @@
 {
   "name": "harlan-follow-document",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "Extensão que habilita o seguir documentos no Harlan.",
   "main": "index.js",
   "scripts": {

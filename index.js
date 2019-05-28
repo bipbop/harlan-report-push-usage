@@ -21697,6 +21697,40 @@
     controller.registerTrigger('serverCommunication::websocket::followDocument::insert', 'icheques::ban::register', changeDocument);
     controller.registerTrigger('serverCommunication::websocket::followDocument::update', 'icheques::ban::register', changeDocument);
     controller.registerTrigger('serverCommunication::websocket::followDocument::insert', 'icheques::ban::register', deleteDocument);
+    controller.registerTrigger('ccbusca::parser', 'followDocument', function (_ref8, callback) {
+      var result = _ref8.result,
+          doc = _ref8.doc;
+      callback();
+      var document = doc.replace(/[^0-9]/g, '');
+
+      if (!(document in followedDocuments)) {
+        return;
+      }
+
+      var monitoramento = null;
+      monitoramento = $('<button />').text('Deixar de Acompanhar').addClass('button').append($('<small />').text('Interromper Acompanhamento').css({
+        display: 'block',
+        'font-size': '9px'
+      }));
+      monitoramento.click(function () {
+        controller.server.call("DELETE FROM 'FOLLOWDOCUMENT'.'DOCUMENT'", controller.call('error::ajax', {
+          dataType: 'json',
+          data: {
+            documento: doc
+          },
+          success: function success() {
+            return controller.alert({
+              icon: 'star',
+              title: 'Que pena! O documento não é mais monitorado.',
+              subtitle: 'Dentro de instantes não será mais possível extrair um relatório de seus cedentes e sacados com este documento incluso.',
+              paragraph: 'Caso haja qualquer alteração no documento junto as instituições de crédito você não será mais avisado.'
+            });
+          }
+        }));
+        monitoramento.remove();
+      });
+      result.addItem().prepend(monitoramento);
+    });
     drawReport();
   });
 
