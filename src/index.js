@@ -299,8 +299,8 @@ harlan.addPlugin((controller) => {
       'O monitoramento auxilia na manutenção regular de seus clientes e fornecedores. Diariamente, nosso sistema verifica por alterações relevantes nas informações de cheques sem fundo, protestos e Receita Federal. Caso haja uma alteração, nós lhe enviaremos um e-mail para que fique por dentro de tudo.',
       false);
 
-    report.button('Abrir Filtro', () => updateChart());
-    // report.button('Monitorar Documento', () => modalFollow());
+    // report.button('Abrir Filtro', () => updateChart());
+    report.button('Monitorar Documento', () => modalFollow());
     report.gamification('brilliantIdea');
 
     const reportElement = report.element();
