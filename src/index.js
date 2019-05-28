@@ -5,14 +5,15 @@ import moment from 'moment';
 import Chart from 'chart.js';
 import Color from 'color';
 
+import { Harmonizer } from 'color-harmony';
+
 import difference from 'lodash/difference';
 import groupBy from 'lodash/groupBy';
 import map from 'lodash/map';
 import values from 'lodash/values';
+import sortedUniq from 'lodash/sortedUniq';
 import meanBy from 'lodash/meanBy';
 import pickBy from 'lodash/pickBy';
-
-import { Harmonizer } from 'color-harmony';
 
 const harmonizer = new Harmonizer();
 const colorMix = 'neutral';
@@ -23,9 +24,9 @@ let renderedReport = null;
 
 const reference = {
   markers: {
-    'has-ccf': 'consta cheque sem fundo',
-    'has-protesto': 'consta protesto',
-    'rfb-invalid': 'situação irregular na Receita Federal',
+    'has-ccf': 'Cheque sem Fundo (CCF)',
+    'has-protesto': 'Protesto',
+    'rfb-invalid': 'Irregular na Receita Federal',
   },
   state: {
     ccf: 'Cheques sem Fundo (CCF)',
@@ -34,6 +35,7 @@ const reference = {
 };
 
 let filterConfiguration = {
+  aggregateMarker: true,
   state: 'ccf',
   markers: null,
 };
@@ -107,11 +109,19 @@ harlan.addPlugin((controller) => {
             placeholder: 'Marcadores (Opcional)',
           }],
           {
-            name: 'rfb-invalid',
+            name: 'rfbInvalid',
             type: 'checkbox',
             optional: true,
             value: 'true',
-            labelText: 'Apenas irregulares junto a Receita Federal',
+            labelText: 'Apenas irregulares junto a Receita Federal.',
+          },
+          {
+            name: 'aggregateMarker',
+            type: 'checkbox',
+            optional: true,
+            checked: filterConfiguration.aggregateMarker,
+            value: true,
+            labelText: 'Agregar informações desabonadoras.',
           },
         ],
       }],
@@ -151,6 +161,11 @@ harlan.addPlugin((controller) => {
         if (!validMarkers) return true;
         return !difference(validMarkers, userMarkers).length;
       }), (doc) => {
+      if (filterConfiguration.aggregateMarker) {
+        return sortedUniq(doc.markers.filter(marker => /(^has-|-invalid$)/.test(marker)))
+          .map(marker => reference.markers[marker]).join(', ') || 'Nada Consta';
+      }
+
       const qtde = doc.state[state];
       const stateReference = reference.state[state];
       if (typeof qtde !== 'number') return 'Aguardando processamento';
@@ -171,7 +186,10 @@ harlan.addPlugin((controller) => {
       success: harmonizer.harmonize('#00ff6b', colorMix),
     };
 
-    const backgroundColor = map(database, v => meanBy(v, `state.${state}`)).map((qtde) => {
+    const backgroundColor = filterConfiguration.aggregateMarker ? map(database, (v, k) => {
+      if (k === 'Nada Consta') return colors.success.shift();
+      return colors.error.shift();
+    }) : map(database, v => meanBy(v, `state.${state}`)).map((qtde) => {
       if (typeof qtde !== 'number' || Number.isNaN(qtde)) return colors.warning.shift();
       if (qtde === 0) return colors.success.shift();
       if (qtde <= 2) return colors.warning.shift();
@@ -223,7 +241,6 @@ harlan.addPlugin((controller) => {
                   cb(elements.slice());
                   if (!elements.length) return;
                   elements.map(element => $('.fa.fa-minus-square-o', element).click());
-                  debugger;
                   $('html, body').animate({
                     scrollTop: elements[0].offset().top,
                   }, 2000);
