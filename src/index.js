@@ -300,7 +300,7 @@ harlan.addPlugin((controller) => {
       false);
 
     report.button('Abrir Filtro', () => updateChart());
-    report.button('Monitorar Documento', () => modalFollow());
+    // report.button('Monitorar Documento', () => modalFollow());
     report.gamification('brilliantIdea');
 
     const reportElement = report.element();
