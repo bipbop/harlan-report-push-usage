@@ -21475,8 +21475,8 @@
             type: 'select',
             optional: false,
             value: filterConfiguration.state,
-            labelText: 'Filtro',
-            placeholder: 'Filtro',
+            labelText: 'Agragador',
+            placeholder: 'Agragador',
             list: _objectSpread({
               '': 'Escolha um filtro'
             }, reference.state)

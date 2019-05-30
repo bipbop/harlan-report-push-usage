@@ -94,8 +94,8 @@ harlan.addPlugin((controller) => {
             type: 'select',
             optional: false,
             value: filterConfiguration.state,
-            labelText: 'Filtro',
-            placeholder: 'Filtro',
+            labelText: 'Agragador',
+            placeholder: 'Agragador',
             list: {
               '': 'Escolha um filtro',
               ...reference.state,
