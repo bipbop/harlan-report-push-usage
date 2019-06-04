@@ -12,8 +12,9 @@ export default {
   ],
   output: {
     file: 'index.js',
-    name: 'HarlanIChequesVeiculos',
+    name: 'HarlanPushUsage',
     format: 'iife',
+    sourcemap: true,
     globals: {
       harlan: 'harlan',
       jquery: '$',
