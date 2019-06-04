@@ -1,6 +1,6 @@
-# harlan-follow-document@1.0.0
+# harlan-report-push-usage@1.0.0
 
-Extensão que habilita o acompanhamento de CPF/CNPJ na BIPBOP.
+Acompanha a evolução de clientes através do Harlan.
 
 ## Installation
 Download node at [nodejs.org](http://nodejs.org) and install it, if you haven't already.
