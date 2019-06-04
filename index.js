@@ -18037,7 +18037,7 @@
 	var harmonizer = new Harmonizer_1();
 	harlan.addPlugin(function (controller) {
 	  function drawReport(data) {
-	    var report = controller.call('report', 'Crescimento de PUSHs', 'Visualize o crescimento dos PUSHs na base de dados.', 'Com este relatório é possível visualizar quais cliente estão adicionando mais processos a base. Os PUSHs monitorados são aqueles que ainda não foram deletados e não possuem restrição quanto a sua versão. O objetivo é nortear o comercial sobre quais clientes devems ser trabalhados', false);
+	    var report = controller.call('report', 'Crescimento de PUSHs', 'Visualize o crescimento dos PUSHs na base de dados.', 'Com este relatório é possível visualizar quais cliente estão adicionando mais processos a base. Os PUSHs monitorados são aqueles que ainda não foram deletados e não possuem restrição quanto a sua versão. O objetivo é nortear o comercial sobre quais clientes devems ser trabalhados');
 	    var colors = harmonizer.harmonize('#00ff6b', [0, 10, 20, 30, 40, 50, 60, 70, 80, 90]);
 	    var chartCanvas = report.canvas(800, 250);
 	    var chart = new Chart(chartCanvas.getContext('2d'), {
