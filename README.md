@@ -1,4 +1,4 @@
-# harlan-report-push-usage@1.0.0
+# harlan-report-push-usage@1.0.2
 
 Acompanha a evolução de clientes através do Harlan.
 
